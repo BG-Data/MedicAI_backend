@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "medicai_backend"
+version = "0.1.0"
+description = ""
+authors = ["Leon Balloni <leon.balloni@makes.ai>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.110.1"
+SQLAlchemy = "^2.0.29"
+python-dotenv = "^1.0.1"
+loguru = "^0.7.2"
+python-decouple = "^3.8"
+cryptocode = "^0.1"
+alembic = "^1.13.1"
+psycopg2-binary = "^2.9.9"
+pylint = "^3.1.0"
+python-jose = "^3.3.0"
+python-multipart = "^0.0.9"
+boto3 = "^1.34.85"
+pymysql = "^1.1.0"
+ecdsa = "^0.19.0"
+pydantic = "^2.7.0"
+black = "^24.4.0"
+uvicorn = "^0.29.0"
+pytz = "^2024.1"
+requests = "^2.31.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
