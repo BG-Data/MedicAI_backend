@@ -2,12 +2,15 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import List, Optional, Union
 
+import pytz
 from pydantic import BaseModel, ConfigDict
 
 from settings import cfg
 
 # Usuários
 from utils.enums import UserType, UserTypePrivileged
+
+tz = pytz.timezone("America/Sao_Paulo")
 
 
 class PydanticModel(BaseModel):
@@ -23,7 +26,8 @@ class PydanticModel(BaseModel):
 
 
 class Health(PydanticModel):
-    datetime: str = datetime.utcnow().strftime("%d-%m-%Y %H:%M:%S")
+
+    datetime: str = datetime.now(tz=tz).strftime("%d-%m-%Y %H:%M:%S")
     status: str = "ok"
     environment: str = cfg.ENVIRONMENT
 
@@ -42,8 +46,12 @@ class UserSchema(UserBase):
     lgpd: bool
     document: str
     document_type: str
+    medical_document: str
+    medical_document_type: str
     user_type: UserType | UserTypePrivileged
     deleted: bool
+    privacy_terms: bool
+    data_protection_terms: bool
 
 
 class UserInsert(UserBase):
@@ -54,17 +62,6 @@ class UserInsert(UserBase):
     document: str
     document_type: str
     user_type: UserType
-    deleted: bool = False
-
-
-class UserInsertAdmin(UserBase):
-    name: str
-    password: str
-    birthdate: date
-    lgpd: bool
-    document: str
-    document_type: str
-    user_type: UserTypePrivileged
     deleted: bool = False
 
 

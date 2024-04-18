@@ -1,13 +1,15 @@
-from pydantic import BaseModel
-from db.connectors import Base, get_session
-from sqlalchemy.orm import Session
-from sqlalchemy import text, or_
-from typing import Any, Union, List
-from common import DatabaseSessions, get_current_method_name
-from loguru import logger
 import sys
-from fastapi import APIRouter, HTTPException, Depends, Request, status, Response
 from datetime import date, datetime
+from typing import Any, List, Union
+
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from loguru import logger
+from pydantic import BaseModel
+from sqlalchemy import or_, text
+from sqlalchemy.orm import Session
+
+from common import DatabaseSessions, get_current_method_name
+from db.connectors import Base, get_session
 from utils import ModelUtils
 
 logger.add(
@@ -127,22 +129,18 @@ class CrudApi(APIRouter):
         self,
         model: Base,
         schema: BaseModel,
-        insert_schema: BaseModel,
-        update_schema: BaseModel,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.model = model
-        self.insert_schema = insert_schema
-        self.update_schema = update_schema
         self.crud = CrudService(model, schema)
 
     def get(
         self,
         id: int = None,
-        limit: int = 5,
-        offset: int = 0,
+        page_size: int = 20,
+        page: int = 0,
         get_schema: Request = None,
         session: Session = Depends(get_session),
     ):
@@ -157,7 +155,6 @@ class CrudApi(APIRouter):
 
     def insert(self, insert_schema: BaseModel, session: Session = Depends(get_session)):
         try:
-            insert_schema = self.insert_schema if not insert_schema else insert_schema
             return self.crud.insert_item(insert_schema, session)
         except Exception as exp:
             logger.error(f"Error at >>>>> insert_item {exp}")
@@ -170,7 +167,6 @@ class CrudApi(APIRouter):
         session: Session = Depends(get_session),
     ):
         try:
-            update_schema = self.update_schema if not update_schema else update_schema
             return self.crud.update_item(item_id, update_schema, session)
         except Exception as exp:
             logger.error(f"Error at >>>>> update_item {exp}")

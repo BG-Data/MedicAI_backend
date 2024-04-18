@@ -3,6 +3,7 @@ from enum import Enum
 
 class UserType(str, Enum):
     cliente = "cliente"
+    medico = "medico"
 
 
 class UserTypePrivileged(str, Enum):
