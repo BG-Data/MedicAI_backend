@@ -1,6 +1,6 @@
 import uvicorn
 
-from init import init_app
+from init_main import init_app
 
 # from settings import cfg
 
