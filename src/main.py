@@ -14,5 +14,8 @@ app_base_configs = {
     "access_log": True,
     "reload": True,  # bool(cfg.RELOAD)
 }
+
 if __name__ == "__main__":
     uvicorn.run("main:app", **app_base_configs)
+
+#meu primeiro commit
