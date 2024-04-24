@@ -2,6 +2,7 @@ import sys
 from datetime import datetime, timedelta
 from typing import Annotated, Union
 
+import pytz
 from fastapi import APIRouter, Depends, HTTPException, Response, responses, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
@@ -13,6 +14,7 @@ from db.connectors import Session, get_session
 from db.models import UserModel
 from settings import cfg
 
+timezone = pytz.timezone("America/Sao_Paulo")
 logger.add(
     sys.stderr,
     colorize=True,
@@ -84,7 +86,7 @@ class AuthService(DatabaseSessions, PasswordService):
         # Retorna o contexto do usuário
         try:
             payload = jwt.decode(token, cfg.SECRET_KEY, algorithms=[cfg.ALGORITHM])
-            return payload.get("context")
+            return payload
         except JWTError as exc:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -102,7 +104,7 @@ class AuthApi:
             path="/auth", endpoint=self.login_for_access_token, methods=["POST"]
         )
         self.router.add_api_route(
-            path="/health", endpoint=self.auth_health, methods=["GET"]
+            path="/user/session", endpoint=self.auth_health, methods=["GET"]
         )
 
     def login_for_access_token(
@@ -110,21 +112,27 @@ class AuthApi:
         auth_credentials: Annotated[OAuth2PasswordRequestForm, Depends()],
         session: Session = Depends(get_session),
     ) -> Response:
-        jwt = self.auth_service.generate_user_jwt(
-            username=auth_credentials.username,
-            password=auth_credentials.password,
-            session=session,
+        return responses.JSONResponse(
+            self.auth_service.generate_user_jwt(
+                username=auth_credentials.username,
+                password=auth_credentials.password,
+                session=session,
+            ),
+            200,
         )
-        return responses.JSONResponse(jwt, 200)
 
+    @staticmethod
     def auth_health(
-        self, user_context: Annotated[dict, Depends(AuthService.get_auth_user_context)]
+        user_context: Annotated[dict, Depends(AuthService.get_auth_user_context)]
     ):
         return responses.JSONResponse(
             {
-                "datetime": datetime.utcnow().strftime("%Y/%m/%d %H:%M:%S"),
+                "datetime": datetime.now(tz=timezone).strftime("%Y/%m/%d %H:%M:%S"),
                 "status": "ok",
-                "user_context": user_context,
+                "token expiration": datetime.fromtimestamp(
+                    user_context.get("exp")
+                ).strftime("%d/%m/%Y %H:%M"),
+                "user_context": user_context.get("context"),
             },
             200,
         )

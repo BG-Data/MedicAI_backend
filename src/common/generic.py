@@ -1,14 +1,15 @@
 import sys
 from datetime import date, datetime
-from typing import Any, List, Union
+from typing import Annotated, Any, List, Union
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from loguru import logger
 from pydantic import BaseModel
 from sqlalchemy import or_, text
 from sqlalchemy.orm import Session
 
 from common import DatabaseSessions, get_current_method_name
+from common.auth import AuthService
 from db.connectors import Base, get_session
 from utils import ModelUtils
 
@@ -27,7 +28,7 @@ class CrudService(DatabaseSessions):
         self.model = model
         self.model_util = ModelUtils(model)
 
-    def get_itens(self, kwargs: dict, session: Session) -> List[BaseModel]:
+    async def get_itens(self, kwargs: dict, session: Session) -> List[BaseModel]:
         # TODO -> refatorar para incluir cinco esquemas em um padrão de contrato front/back bem definido para: filtros, ordernação, agrupamento, limit/offset/paginação e joins
         "Recupera itens de acordo com os argumentos adicionados em dicionário"
         try:
@@ -136,17 +137,17 @@ class CrudApi(APIRouter):
         self.model = model
         self.crud = CrudService(model, schema)
 
-    def get(
+    async def get(
         self,
         id: int = None,
-        page_size: int = 20,
-        page: int = 0,
+        limit: int = 20,
+        offset: int = 0,
         get_schema: Request = None,
         session: Session = Depends(get_session),
     ):
         try:
             params = get_schema.query_params._dict
-            result = self.crud.get_itens(params, session)
+            result = await self.crud.get_itens(params, session)
             return result
         except Exception as exp:
             logger.error(f"Error at >>>>> get_item {exp}")

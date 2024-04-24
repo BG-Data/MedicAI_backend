@@ -14,7 +14,7 @@ from common.generic import CrudApi, Depends
 from db import MakeOptionalPydantic
 from db.connectors import Session, get_session
 from db.models import UserModel
-from db.schemas import UserInsert, UserInsertAdmin, UserSchema, UserUpdate
+from db.schemas import UserInsert, UserSchema, UserUpdate
 
 logger.add(
     sys.stderr,
@@ -61,16 +61,17 @@ class UserApi(CrudApi):
         self.service = UserService(model, schema)
         self.password_service = PasswordService()
 
-    def get(
+    async def get(
         self,
         id: int = None,
-        page_size: int = 10,
-        page: int = 0,
+        limit: int = 10,
+        offset: int = 0,
         get_schema: Request = None,
         session: Session = Depends(get_session),
+        user_context=Depends(AuthService.get_auth_user_context),
     ):
         try:
-            user_data = super().get(id, page_size, page, get_schema, session)
+            user_data = await super().get(id, limit, offset, get_schema, session)
             return [user.model_dump(exclude={"password"}) for user in user_data]
         except Exception as exp:
             logger.error(f"error at get {self.__class__.__name__} {exp}")

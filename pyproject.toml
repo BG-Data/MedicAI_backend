@@ -25,6 +25,7 @@ black = "^24.4.0"
 uvicorn = "^0.29.0"
 pytz = "^2024.1"
 requests = "^2.31.0"
+SQLAlchemy-Utils = "^0.41.2"
 
 [tool.poetry.dev-dependencies]
 

@@ -1,14 +1,15 @@
+import sys
+from datetime import date
+from typing import List
+
+from loguru import logger
+
+from common import PasswordService
+from common.generic import CrudService
+from db.connectors import Session, SessionLocal
 from db.models import UserModel
 from db.schemas import UserInsertAdmin
-from common.generic import CrudService
-from common import PasswordService
-from datetime import date
-from loguru import logger
-import sys
-from db.connectors import Session, SessionLocal
-from typing import List
 from settings import cfg
-
 
 logger.add(
     sys.stderr,
@@ -35,10 +36,11 @@ class BaseUsers(PasswordService, CrudService):
                 name="dev",
                 password=self.hash_password(cfg.DEV_PSWD),
                 birthdate=date.today(),
-                lgpd=True,
+                data_protection_terms=True,
                 document="",
                 document_type="",
                 user_type="admin",
+                privacy_terms=True,
             )
 
             to_create.append(dev)

@@ -43,11 +43,10 @@ class UserSchema(UserBase):
     name: str
     password: str
     birthdate: date
-    lgpd: bool
     document: str
     document_type: str
-    medical_document: str
-    medical_document_type: str
+    medical_document: Optional[str] = None
+    medical_document_type: Optional[str] = None
     user_type: UserType | UserTypePrivileged
     deleted: bool
     privacy_terms: bool
@@ -58,11 +57,18 @@ class UserInsert(UserBase):
     name: str
     password: str
     birthdate: date
-    lgpd: bool
     document: str
     document_type: str
+    medical_document: Optional[str] = None
+    medical_document_type: Optional[str] = None
     user_type: UserType
     deleted: bool = False
+    privacy_terms: bool
+    data_protection_terms: bool
+
+
+class UserInsertAdmin(UserInsert):
+    user_type: UserTypePrivileged
 
 
 class UserUpdate(UserInsert):

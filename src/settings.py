@@ -23,9 +23,10 @@ class Config:
 
     ENVIRONMENT = config("ENVIRONMENT", default="test", cast=str)
     INFISICAL_TOKEN = config("INFISICAL_TOKEN")
+    DATABASE_NAME = config("DATABASE_NAME", default="", cast=str)
     DATABASE_URL = config(
         "DATABASE_URL", default="", cast=str
-    ) or "sqlite:///" + os.path.join(basedir, "test.db")
+    ) + DATABASE_NAME or "sqlite:///" + os.path.join(basedir, "test.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CRIPTOCODE = config("CRIPTOCODE", cast=str, default="teste")
     SECRET_KEY = config("SECRET_KEY", cast=str, default="teste")
@@ -36,9 +37,8 @@ class Config:
     )
     PORT = config("PORT", default=5000, cast=int)
     UVICORN_WORKERS = config("UVICORN_WORKERS", default=1, cast=int)
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(
-        hours=config("JWT_ACCESS_TOKEN_EXPIRES", default=1, cast=int)
-    )
+    JWT_ACCESS_TOKEN_EXPIRES = config("JWT_ACCESS_TOKEN_EXPIRES", default=1, cast=int)
+
     RELOAD = config("RELOAD", default=True, cast=bool)
     AWS_ACCESS_KEY = config("AWS_ACCESS_KEY", cast=str)
     AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", cast=str)
@@ -62,6 +62,10 @@ class Config:
 
 
 cfg = Config()
+logger.info(
+    f"Started {cfg.ENVIRONMENT} environment. Acessing {cfg.DATABASE_NAME} database"
+)
+
 
 # print(cfg)
 # OBS
