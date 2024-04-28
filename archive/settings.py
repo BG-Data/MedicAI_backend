@@ -23,6 +23,28 @@ class Config:
 
     ENVIRONMENT = config("ENVIRONMENT", default="test", cast=str)
     INFISICAL_TOKEN = config("INFISICAL_TOKEN")
+    # DATABASE_NAME = config("DATABASE_NAME", default="", cast=str)
+    # DATABASE_URL = config(
+    #     "DATABASE_URL", default="", cast=str
+    # ) + DATABASE_NAME or "sqlite:///" + os.path.join(basedir, "test.db")
+    # SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # CRIPTOCODE = config("CRIPTOCODE", cast=str, default="teste")
+    # SECRET_KEY = config("SECRET_KEY", cast=str, default="teste")
+    # ALGORITHM = config("ALGORITHM", cast=str, default="HS256")
+    # DEV_PSWD = config("DEV_PSWD", cast=str, default="teste")
+    # MERCADO_PAGO_ACCESS_TOKEN = config(
+    #     "MERCADO_PAGO_ACCESS_TOKEN", cast=str, default=""
+    # )
+    # PORT = config("PORT", default=5000, cast=int)
+    # UVICORN_WORKERS = config("UVICORN_WORKERS", default=1, cast=int)
+    # JWT_ACCESS_TOKEN_EXPIRES = config("JWT_ACCESS_TOKEN_EXPIRES", default=1, cast=int)
+
+    # RELOAD = config("RELOAD", default=True, cast=bool)
+    # AWS_ACCESS_KEY = config("AWS_ACCESS_KEY", cast=str)
+    # AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", cast=str)
+    # AWS_REGION = config("AWS_REGION", cast=str)
+    # AWS_BUCKET_NAME = config("AWS_BUCKET_NAME", cast=str)
+    # AWS_BUCKET_FOLDER = config("AWS_BUCKET_FOLDER", cast=str)
 
     def __init__(self):
         if self.INFISICAL_TOKEN and self.ENVIRONMENT != "test":
