@@ -79,7 +79,7 @@ class UserApi(CrudApi):
     def insert(
         self, insert_schema: UserInsert, session: Session = Depends(get_session)
     ):
-        "Ordinary user -> buyer"
+        "Ordinary user -> client"
         try:
             insert_schema.password = self.password_service.hash_password(
                 insert_schema.password
