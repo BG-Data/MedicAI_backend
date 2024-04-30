@@ -89,6 +89,7 @@ class UserApi(CrudApi):
             )
         except Exception as exp:
             logger.error(f"error at insert {self.__class__.__name__} {exp}")
+            raise HTTPException(status_code=400, detail=str(exp))
 
     def update(
         self,
@@ -120,3 +121,4 @@ class UserApi(CrudApi):
             )
         except Exception as exp:
             logger.error(f"error at update {self.__class__.__name__} {exp}")
+            raise HTTPException(status_code=400, detail=str(exp))
