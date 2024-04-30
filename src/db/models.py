@@ -60,9 +60,7 @@ class UserModel(DefaultModel):
     document = Column(String(18), nullable=False, index=True, unique=True)
     document_type = Column(String(10), nullable=False)
     medical_document = Column(String(20), nullable=True, index=True, unique=True)
-    medical_document_type = Column(
-        String(18), nullable=True, index=True, unique=True, default="crm"
-    )
+    medical_document_type = Column(String(18), nullable=True, index=True, default="crm")
     user_type = Column(
         String(30), nullable=False, default="cliente"
     )  # comprador, administrador(apenas devs) e vendedor
