@@ -1,9 +1,10 @@
 from datetime import date, datetime
 from decimal import Decimal
 from typing import List, Optional, Union
+from uuid import uuid4
 
 import pytz
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from settings import cfg
 
@@ -73,3 +74,17 @@ class UserInsertAdmin(UserInsert):
 
 class UserUpdate(UserInsert):
     old_password: str
+
+
+class PhotoSchema:
+    user_id: str
+    filename: str
+    content_type: str
+    file_path: str
+    photo_name: Optional[str] = Field(default_factory=uuid4)
+
+    @field_validator(field="photo_name", mode="before")
+    @classmethod
+    def convert_uuid(cls, photo_name: str):
+        if photo_name:
+            return str(photo_name)

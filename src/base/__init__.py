@@ -34,7 +34,7 @@ def init_middlewares(app: FastAPI):
 def init_app():
     app = FastAPI()
     api_routes = {
-        "user": {"router": UserApi(), "tags": ["Usuarios"], "prefix": "/user"}
+        "user": {"router": UserApi(), "tags": ["Usuarios"], "prefix": "/users"}
         # "product": {
         #     "router": ProductApi(),
         #     "tags": ["Produtos"],
