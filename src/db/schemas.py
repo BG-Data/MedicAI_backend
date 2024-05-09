@@ -1,11 +1,15 @@
+import mimetypes
 from datetime import date, datetime
 from decimal import Decimal
 from typing import List, Optional, Union
 from uuid import uuid4
 
 import pytz
+from fastapi import UploadFile
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from typing_extensions import Annotated
 
+from common.class_exceptions import PhotoInvalid
 from settings import cfg
 
 # Usuários
@@ -15,7 +19,7 @@ tz = pytz.timezone("America/Sao_Paulo")
 
 
 class PydanticModel(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, extra="allow")
 
     # @validator('*', pre=True)
     # def format_date_fields(cls, v):
@@ -35,6 +39,7 @@ class Health(PydanticModel):
 
 class UserBase(PydanticModel):
     email: str
+    photo_url: Optional[str] = None
 
 
 class UserSchema(UserBase):
@@ -76,15 +81,35 @@ class UserUpdate(UserInsert):
     old_password: str
 
 
-class PhotoSchema:
-    user_id: str
-    filename: str
+class PhotoSchema(BaseModel):
+    user_id: int
+    filename: Annotated[Optional[str], Field(validate_default=True)] = None
     content_type: str
-    file_path: str
-    photo_name: Optional[str] = Field(default_factory=uuid4)
+    mimetype: Annotated[Optional[str], Field(validate_default=True)] = None
+    file_path: Annotated[Optional[str], Field(validate_default=True)] = None
+    photo_file: UploadFile
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    @field_validator(field="photo_name", mode="before")
+    @field_validator("filename", mode="before")
     @classmethod
-    def convert_uuid(cls, photo_name: str):
-        if photo_name:
-            return str(photo_name)
+    def check_name(cls, filename: str, values):
+        if not filename:
+            return f"{str(uuid4())[-12:-1]}.{values.data.get('content_type')}"
+        return filename
+
+    @field_validator("mimetype", mode="before")
+    @classmethod
+    def guess_extension_type(cls, mimetype: str, values):
+        if not values.data.get("content_type").startswith("image/"):
+            raise PhotoInvalid(
+                f"Tipo inválida de foto. Utilizado: {values.data.get('content_type')}"
+            )
+        if not mimetype:
+            return mimetypes.guess_extension(values.data.get("content_type"))
+
+    @field_validator("file_path", mode="before")
+    @classmethod
+    def create_file_path(cls, file_path: str, values):
+        if not file_path:
+            file_path = f"{cfg.AWS_BUCKET_NAME}/{cfg.AWS_PHOTO_BUCKET_FOLDER}/user_id:{values.data.get('user_id')}/{values.data.get('filename')}"
+            return file_path

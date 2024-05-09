@@ -2,7 +2,7 @@ import sys
 from time import sleep
 from typing import List
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from loguru import logger
 from pydantic import BaseModel
 from sqlalchemy import delete, or_
@@ -12,7 +12,7 @@ from common.aws import AwsClient
 from common.generic import CrudService
 from db import MakeOptionalPydantic
 from db.connectors import Base, Session, get_session
-from db.schemas import PhotoSchema, UserInsert, UserUpdate
+from db.schemas import PhotoSchema, UserInsert, UserSchema, UserUpdate
 from settings import cfg
 
 logger.add(
@@ -32,10 +32,22 @@ class UserService(CrudService):
         self.crud = CrudService(model, schema)
         self.aws_client = AwsClient(
             "s3",
-            cfg.AWS_ACCESS_PHOTO_KEY,
-            cfg.AWS_SECRET_PHOTO_KEY,
-            cfg.AWS_PHOTO_REGION,
+            cfg.AWS_ACCESS_PHOTO_BUCKET_KEY,
+            cfg.AWS_ACCESS_PHOTO_BUCKET_SECRET_KEY,
+            cfg.AWS_PHOTO_BUCKET_REGION,
         )
+
+    # TODO generate photo presigned url
+    async def get_presigned_url(
+        self,
+        user_data: List[UserSchema],
+    ) -> List[UserSchema]:
+        # user_data = [user for ]
+        for user in user_data:
+            presigned_url = self.aws_client.create_presigned_url(user)
+            user.photo_path = presigned_url
+
+        return user_data
 
     def update_password(
         self,
@@ -67,8 +79,13 @@ class UserService(CrudService):
         )
         return insert_schema
 
-    def insert_photo(self, photo_schema: PhotoSchema):
+    async def insert_photo(self, photo_schema: PhotoSchema) -> str:
         pass
+        # TODO working on service procedures
+        self.insert_to_bucket()
+        self.insert_photo_to_db()
+        self.get_presigned_url()
+        return presigned_url
 
-    def update_photo(self):
+    async def update_photo(self):
         pass

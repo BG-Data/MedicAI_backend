@@ -18,6 +18,14 @@ class OriginalException(Exception):
         return self.message
 
 
+class PhotoInvalid(OriginalException):
+    pass
+
+
+class AwsInsertionFailed(OriginalException):
+    pass
+
+
 class AlreadyExist(OriginalException):
     pass
 
@@ -43,19 +51,4 @@ class Forbidden(OriginalException):
 
 
 class InvalidResultType(OriginalException):
-    pass
-
-
-class WalletNotFound(OriginalException):
-    """
-    Exception raised when a wallet is not found.
-
-    Attributes:
-        message (str): The error message describing the reason for the exception.
-
-    Methods:
-        __init__(self, message): Initializes the WalletNotFound exception with the given message.
-        __str__(self): Returns the error message as a string representation of the exception.
-    """
-
     pass
