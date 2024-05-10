@@ -2,9 +2,11 @@ import inspect
 import os
 import sys
 import threading
+from typing import BinaryIO
 
 import cryptocode
 from sqlalchemy.orm import Session
+from starlette.datastructures import UploadFile
 
 from settings import cfg
 
@@ -122,3 +124,12 @@ class ProgressPercentage(object):
                 % (self._filename, self._seen_so_far, self._size, percentage)
             )
             sys.stdout.flush()
+
+
+class FileProcessing:
+
+    @staticmethod
+    async def read_write_new_file(file: UploadFile | BinaryIO, filename: str) -> None:
+        content = await file.read()
+        with open(f"files/{filename}", "wb") as f:
+            f.write(content)

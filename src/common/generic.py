@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from common import DatabaseSessions, get_current_method_name
 from common.auth import AuthService
+from common.class_exceptions import UserNotFound
 from db.connectors import Base, get_session
 from utils import ModelUtils
 
@@ -32,16 +33,17 @@ class CrudService(DatabaseSessions):
         # TODO -> refatorar para incluir cinco esquemas em um padrão de contrato front/back bem definido para: filtros, ordernação, agrupamento, limit/offset/paginação e joins
         "Recupera itens de acordo com os argumentos adicionados em dicionário"
         try:
-            if kwargs.get("id"):
-                item = (
-                    session.query(self.model)
-                    .filter(self.model.id == kwargs.get("id"))
-                    .first()
-                )
-                if not item:
-                    raise Exception(
-                        f"{self.model} does not exist with id: {kwargs.get('id')}"
-                    )
+            # if kwargs.get("id"):
+            #     item = (
+            #         session.query(self.model)
+            #         .filter(self.model.id == kwargs.get("id"))
+            #         .first()
+            #     )
+            #     if not item:
+            #         raise UserNotFound(
+            #             f"{self.model} does not exist with id: {kwargs.get('id')}"
+            #         )
+            # else:
             sql_order_by_list = []
             item = session.query(self.model)
             if limit := kwargs.pop("limit", 10):

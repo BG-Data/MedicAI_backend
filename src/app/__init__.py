@@ -7,7 +7,7 @@ from loguru import logger
 from pydantic import BaseModel
 from sqlalchemy import delete, or_
 
-from common import PasswordService, get_current_method_name
+from common import FileProcessing, PasswordService, get_current_method_name
 from common.aws import AwsClient
 from common.generic import CrudService
 from db import MakeOptionalPydantic
@@ -26,10 +26,10 @@ logger.add(
 
 class UserService(CrudService):
     def __init__(self, model: Base, schema: BaseModel):
+        super().__init__(model, schema)
         self.model = model
         self.base_schema = schema
         self.password_service = PasswordService()
-        self.crud = CrudService(model, schema)
         self.aws_client = AwsClient(
             "s3",
             cfg.AWS_ACCESS_PHOTO_BUCKET_KEY,
@@ -43,9 +43,11 @@ class UserService(CrudService):
         user_data: List[UserSchema],
     ) -> List[UserSchema]:
         # user_data = [user for ]
-        for user in user_data:
-            presigned_url = self.aws_client.create_presigned_url(user)
-            user.photo_path = presigned_url
+        for i, user in enumerate(user_data):
+            presigned_url = self.aws_client.create_presigned_url(
+                cfg.AWS_BUCKET_NAME, user.photo_object, 600
+            )
+            user_data[i].photo_url = presigned_url
 
         return user_data
 
@@ -57,7 +59,7 @@ class UserService(CrudService):
         if update_schema.model_dump(exclude_unset=True).get("old_password"):
             valid = self.password_service.get_password(
                 update_schema.old_password,
-                self.crud.get_itens({"id": id}, session)[0].password,
+                self.get_itens({"id": id}, session)[0].password,
             )
             update_schema.old_password = None
             update_schema.password = self.password_service.hash_password(
@@ -79,13 +81,28 @@ class UserService(CrudService):
         )
         return insert_schema
 
-    async def insert_photo(self, photo_schema: PhotoSchema) -> str:
-        pass
-        # TODO working on service procedures
-        self.insert_to_bucket()
-        self.insert_photo_to_db()
-        self.get_presigned_url()
-        return presigned_url
+    async def _insert_to_bucket(self, photo_schema: PhotoSchema):
+        await FileProcessing.read_write_new_file(
+            photo_schema.photo_file, photo_schema.filename
+        )
+        photo_schema.uploaded_file = self.aws_client.upload_file(
+            photo_schema.filename, cfg.AWS_BUCKET_NAME, photo_schema.file_path, False
+        )
+        return photo_schema
 
-    async def update_photo(self):
-        pass
+    async def insert_photo(self, photo_schema: PhotoSchema, session: Session) -> str:
+        users: List[UserSchema] = await self.get_itens(
+            {"id": photo_schema.user_id}, session
+        )
+        if users[0].photo_object:
+            self.aws_client.delete_file(cfg.AWS_BUCKET_NAME, users[0].photo_object)
+        photo_schema = await self._insert_to_bucket(photo_schema)
+        user_update = MakeOptionalPydantic.make_partial_model(UserUpdate)
+        user_update = user_update(photo_object=photo_schema.file_path)
+        users = self.update_item(
+            photo_schema.user_id,
+            user_update,
+            session,
+        )
+        users = await self.get_presigned_url([users])
+        return users

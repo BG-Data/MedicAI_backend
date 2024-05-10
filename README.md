@@ -43,7 +43,44 @@ source .venv/bin/activate
 
 7. Acessar o docs da API
 
-* 0.0.0.0:5000/docs  
+* 0.0.0.0:8000/docs  
+
+
+
+# Como realizar migrações/modificações no db
+
+> Migrações de banco de dados: 
+
+* Usamos Alembic, um pacote python focado em migrar. [Alembic](https://alembic.sqlalchemy.org/en/latest/tutorial.html)
+
+
+1. Utilizando a biblioteca Alembic, podemos iniciar revisões auto geradas (obs: isso funciona para grande maioria das operações, mas não todas. Conferir na doc da [biblioteca](https://alembic.sqlalchemy.org/en/latest/autogenerate.html))
+
+2. Executar uma revisão de modelo no terminal/prompt e na pasta em que se encontra o **alembic.ini** 
+
+```shell
+alembic revision --autogenerate -m '[Texto sobre migração]'
+```
+Gerará um código de migração (ela não foi feita ainda) para o banco de dados
+
+3. Para subir/aplicar as alterações 
+
+```shell
+alembic upgrade head
+```
+
+4. Para retornar/recuperar o que foi modificado (retornar tudo)
+
+```shell
+alembic downgrade base 
+```
+
+4. 1 para retornar à algo especifico (revision id é gerada no alembic revision e armazenada na pasta versions)
+
+```shell
+alembic downgrade [REVISION_ID] 
+```
+
 
 # Conceitos podem ser revisados aqui
 

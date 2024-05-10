@@ -37,7 +37,7 @@ class AwsClient:
 
     def upload_file(
         self,
-        file_name: str,
+        filename: str,
         bucket: str,
         object_name: str = None,
         public_file: bool = True,
@@ -57,23 +57,30 @@ class AwsClient:
         try:
             if public_file:
                 response = self.client.upload_file(
-                    file_name, bucket, object_name, ExtraArgs={"ACL": "public-read"}
+                    f"files/{filename}",
+                    bucket,
+                    object_name,
+                    ExtraArgs={"ACL": "public-read"},
                 )
             else:
-                response = self.client.upload_file(file_name, bucket, object_name)
+                response = self.client.upload_file(
+                    f"files/{filename}", bucket, object_name
+                )
             logger.info(response)
 
         except ClientError as e:
             logger.error(e)
             return {
                 "status": False,
-                "file": file_name,
+                "file": filename,
+                "object_name": object_name,
                 "url": f"https://{bucket}.s3.{self.region}.amazonaws.com/{object_name}",
             }
         finally:
-            remove(file_name)
+            remove(f"files/{filename}")
         return {
             "status": True,
+            "object_name": object_name,
             "url": f"https://{bucket}.s3.{self.region}.amazonaws.com/{object_name}",
         }
 
@@ -90,7 +97,7 @@ class AwsClient:
             logger.error(e)
             return {"status": False, "url": object_name}
 
-    def create_presigned_url(self, bucket_name, object_name, expiration=3600):
+    def create_presigned_url(self, bucket_name, object_name, expiration=3600) -> str:
         """Generate a presigned URL to share an S3 object
 
         :param bucket_name: string
@@ -100,9 +107,8 @@ class AwsClient:
         """
 
         # Generate a presigned URL for the S3 object
-        s3_client = boto3.client("s3")
         try:
-            response = s3_client.generate_presigned_url(
+            response = self.client.generate_presigned_url(
                 "get_object",
                 Params={"Bucket": bucket_name, "Key": object_name},
                 ExpiresIn=expiration,

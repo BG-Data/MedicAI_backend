@@ -20,7 +20,6 @@ logger.add(
 
 
 class Config:
-
     ENVIRONMENT = config("ENVIRONMENT", default="test", cast=str)
     INFISICAL_TOKEN = config("INFISICAL_TOKEN")
 

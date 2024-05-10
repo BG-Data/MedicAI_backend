@@ -18,6 +18,10 @@ class OriginalException(Exception):
         return self.message
 
 
+class UserNotFound(OriginalException):
+    pass
+
+
 class PhotoInvalid(OriginalException):
     pass
 

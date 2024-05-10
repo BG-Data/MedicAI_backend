@@ -5,8 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from api import UserApi
-from common.auth import AuthApi, AuthService
-from common.aws import AwsClient
+from common.auth import AuthApi
 from common.base_users import BaseUsers
 from db.connectors import Base, engine
 from db.schemas import Health
@@ -34,7 +33,7 @@ def init_middlewares(app: FastAPI):
 def init_app():
     app = FastAPI()
     api_routes = {
-        "user": {"router": UserApi(), "tags": ["Usuarios"], "prefix": "/users"}
+        "users": {"router": UserApi(), "tags": ["Usuarios"], "prefix": "/users"}
         # "product": {
         #     "router": ProductApi(),
         #     "tags": ["Produtos"],
@@ -61,8 +60,8 @@ def init_app():
     app = init_auth(app)
     app = init_routes(app, api_routes)
     Base.metadata.create_all(bind=engine)
-    base_users = BaseUsers().create_base_users()
-    logger.info(base_users)
+    # base_users = BaseUsers().create_base_users()
+    # logger.info(base_users)
     return app, Base
 
 

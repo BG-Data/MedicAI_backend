@@ -9,7 +9,7 @@ from loguru import logger
 
 from app import UserService
 from common.auth import AuthService
-from common.class_exceptions import AwsInsertionFailed, PhotoInvalid
+from common.class_exceptions import AwsInsertionFailed, PhotoInvalid, UserNotFound
 from common.generic import CrudApi, Depends
 from db import MakeOptionalPydantic
 from db.connectors import Session, get_session
@@ -26,6 +26,11 @@ logger.add(
 
 
 class UserApi(CrudApi):
+    api_name = "users"
+    router = "UserApi"
+    tags = ["Usuários"]
+    prefix = "/users"
+
     def __init__(
         self,
         model: UserModel = UserModel,
@@ -65,13 +70,6 @@ class UserApi(CrudApi):
             response_model=Union[schema, Any, Dict[str, str]],
             dependencies=[Depends(AuthService.get_auth_user_context)],
         )
-        self.add_api_route(
-            "/photo",
-            self.update_photo,
-            methods=["PUT"],
-            response_model=Union[schema, Any, Dict[str, str]],
-            dependencies=[Depends(AuthService.get_auth_user_context)],
-        )
         self.service = UserService(model, schema)
 
     async def get(
@@ -98,26 +96,35 @@ class UserApi(CrudApi):
         """
         try:
             user_data = await super().get(id, limit, offset, get_schema, session)
-            user_data = await self.service.get_presigned_url(user_data)
+            if id and user_data[0].photo_object:
+
+                user_data = await self.service.get_presigned_url(user_data)
             return [user.model_dump(exclude={"password"}) for user in user_data]
+        except UserNotFound as exp:
+            logger.error(f"error at get {self.__class__.__name__} {exp}")
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exp)
+            )
         except Exception as exp:
             logger.error(f"error at get {self.__class__.__name__} {exp}")
-            raise HTTPException(status_code=400, detail=str(exp))
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail=str(exp)
+            )
 
     def insert(
         self,
         insert_schema: UserInsert,
-        request: Request,
+        # request: Request,
         session: Session = Depends(get_session),
     ):
         "Ordinary user -> client"
         try:
-            if request.headers.get("authorization"):
-                # TODO -> add user admin permission to insert a new admin to the server.
-                AuthService.get_auth_user_context(
-                    request.headers.get("authorization").split(" ")[-1]
-                ).get("context").get("type")
-            insert_schema = self.service.hash_password(insert_schema.password)
+            # if request.headers.get("authorization"):
+            #     # TODO -> add user admin permission to insert a new admin to the server.
+            #     AuthService.get_auth_user_context(
+            #         request.headers.get("authorization").split(" ")[-1]
+            #     ).get("context").get("type")
+            insert_schema = self.service.hash_password(insert_schema)
             return (
                 super().insert(insert_schema, session).model_dump(exclude={"password"})
             )
@@ -153,7 +160,10 @@ class UserApi(CrudApi):
                 content_type=photo.content_type,
                 photo_file=photo,
             )
-            await self.service.insert_photo(photo_schema=photo_schema)
+            users = await self.service.insert_photo(
+                photo_schema=photo_schema, session=session
+            )
+            return [user.model_dump(exclude={"password"}) for user in users]
         except AwsInsertionFailed as exp:
             logger.error(str(exp))
             raise HTTPException(status_code=400, detail=str(exp))
@@ -163,11 +173,3 @@ class UserApi(CrudApi):
         except Exception as exp:
             logger.error(f"error at insert photo {self.__class__.__name__} {exp}")
             raise HTTPException(status_code=500, detail=str(exp))
-
-    async def update_photo(
-        self,
-        photo: UploadFile,
-        user_context: dict = Depends(AuthService.get_auth_user_context),
-        session: Session = Depends(get_session),
-    ):
-        pass

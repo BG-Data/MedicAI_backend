@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 .infisical.json
 poetry.lock
+files/*

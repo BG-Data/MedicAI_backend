@@ -54,6 +54,11 @@ class UserModel(DefaultModel):
     name = Column(String(255), index=True, nullable=False)
     password = Column(String(255), nullable=False)
     email = Column(String(100), nullable=False, index=True, unique=True)
+    photo_object = Column(
+        String(250),
+        nullable=True,
+        comment="Representa o nome do objeto no bucket s3 e seu caminho",
+    )
     birthdate = Column(Date, nullable=False, index=True)
     privacy_terms = Column(Boolean, nullable=False)
     data_protection_terms = Column(Boolean, nullable=False)

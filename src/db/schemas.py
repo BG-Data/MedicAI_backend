@@ -19,7 +19,7 @@ tz = pytz.timezone("America/Sao_Paulo")
 
 
 class PydanticModel(BaseModel):
-    model_config = ConfigDict(from_attributes=True, extra="allow")
+    model_config = ConfigDict(from_attributes=True)
 
     # @validator('*', pre=True)
     # def format_date_fields(cls, v):
@@ -39,7 +39,7 @@ class Health(PydanticModel):
 
 class UserBase(PydanticModel):
     email: str
-    photo_url: Optional[str] = None
+    photo_object: Optional[str] = None
 
 
 class UserSchema(UserBase):
@@ -78,16 +78,21 @@ class UserInsertAdmin(UserInsert):
 
 
 class UserUpdate(UserInsert):
+    model_config = ConfigDict(extra="allow")
+
     old_password: str
 
 
-class PhotoSchema(BaseModel):
+class PhotoSchema(PydanticModel):
     user_id: int
     filename: Annotated[Optional[str], Field(validate_default=True)] = None
     content_type: str
     mimetype: Annotated[Optional[str], Field(validate_default=True)] = None
     file_path: Annotated[Optional[str], Field(validate_default=True)] = None
     photo_file: UploadFile
+    uploaded_file: Optional[dict] = Field(
+        default=None, description="Dictionary containing uploaded file to bucket at S3"
+    )
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @field_validator("filename", mode="before")
@@ -111,5 +116,5 @@ class PhotoSchema(BaseModel):
     @classmethod
     def create_file_path(cls, file_path: str, values):
         if not file_path:
-            file_path = f"{cfg.AWS_BUCKET_NAME}/{cfg.AWS_PHOTO_BUCKET_FOLDER}/user_id:{values.data.get('user_id')}/{values.data.get('filename')}"
+            file_path = f"{cfg.AWS_PHOTO_BUCKET_FOLDER}/user_id:{values.data.get('user_id')}/{values.data.get('filename')}"
             return file_path
