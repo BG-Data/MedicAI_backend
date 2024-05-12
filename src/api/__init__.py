@@ -13,7 +13,7 @@ from common.class_exceptions import AwsInsertionFailed, PhotoInvalid, UserNotFou
 from common.generic import CrudApi, Depends
 from db import MakeOptionalPydantic
 from db.connectors import Session, get_session
-from db.models import UserModel
+from db.models import Users
 from schemas import PhotoSchema, UserInsert, UserSchema, UserUpdate
 
 logger.add(
@@ -33,7 +33,7 @@ class UserApi(CrudApi):
 
     def __init__(
         self,
-        model: UserModel = UserModel,
+        model: Users = Users,
         schema: UserSchema = UserSchema,
         *args,
         **kwargs,
@@ -96,7 +96,7 @@ class UserApi(CrudApi):
         """
         try:
             user_data = await super().get(id, limit, offset, get_schema, session)
-            if id and user_data[0].photo_object:
+            if id and user_data[0].photo_object_name:
 
                 user_data = await self.service.get_presigned_url(user_data)
             return [user.model_dump(exclude={"password"}) for user in user_data]

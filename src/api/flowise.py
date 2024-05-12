@@ -13,7 +13,7 @@ from common.auth import AuthService
 from common.generic import CrudApi, Depends
 from db import MakeOptionalPydantic
 from db.connectors import Session, get_session
-from db.models import UserModel
+from db.models import Users
 from schemas import UserInsert, UserSchema, UserUpdate
 
 logger.add(

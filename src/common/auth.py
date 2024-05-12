@@ -11,7 +11,7 @@ from sqlalchemy import or_
 
 from common import DatabaseSessions, PasswordService
 from db.connectors import Session, get_session
-from db.models import UserModel
+from db.models import Users
 from settings import cfg
 
 timezone = pytz.timezone("America/Sao_Paulo")
@@ -27,13 +27,11 @@ logger.add(
 class AuthService(DatabaseSessions, PasswordService):
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth")
 
-    def __db_check_user(
-        self, username: str, password: str, session: Session
-    ) -> UserModel:
+    def __db_check_user(self, username: str, password: str, session: Session) -> Users:
         """Checks if user exists"""
         user_query = (
-            session.query(UserModel)
-            .filter(or_(UserModel.email == username, UserModel.name == username))
+            session.query(Users)
+            .filter(or_(Users.email == username, Users.name == username))
             .one_or_none()
         )
         if not user_query:
@@ -51,7 +49,7 @@ class AuthService(DatabaseSessions, PasswordService):
             )
         return user_query
 
-    def __user_context(self, user_model: UserModel) -> dict:
+    def __user_context(self, user_model: Users) -> dict:
         """What to be retrieved by frontend"""
         user_context = {
             "id": user_model.id,

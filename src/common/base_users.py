@@ -7,7 +7,7 @@ from loguru import logger
 from common import PasswordService
 from common.generic import CrudService
 from db.connectors import Session, SessionLocal
-from db.models import UserModel
+from db.models import Users
 from schemas import UserInsertAdmin
 from settings import cfg
 
@@ -23,7 +23,7 @@ logger.add(
 class BaseUsers(PasswordService, CrudService):
     def __init__(
         self,
-        model: UserModel = UserModel,
+        model: Users = Users,
         insert_schema: UserInsertAdmin = UserInsertAdmin,
     ):
         super().__init__(model, insert_schema)
@@ -54,8 +54,8 @@ class BaseUsers(PasswordService, CrudService):
             to_create = []
             for users in self.__base_users_list():
                 result = (
-                    session.query(UserModel)
-                    .filter(UserModel.email == users.email)
+                    session.query(Users)
+                    .filter(Users.email == users.email)
                     .one_or_none()
                 )
                 to_create.append({"insert": False if result else True, "schema": users})

@@ -39,7 +39,7 @@ class Health(PydanticModel):
 
 class UserBase(PydanticModel):
     email: str
-    photo_object: Optional[str] = None
+    photo_object_name: Optional[str] = None
 
 
 class UserSchema(UserBase):

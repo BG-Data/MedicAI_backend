@@ -45,7 +45,7 @@ class UserService(CrudService):
         # user_data = [user for ]
         for i, user in enumerate(user_data):
             presigned_url = self.aws_client.create_presigned_url(
-                cfg.AWS_BUCKET_NAME, user.photo_object, 600
+                cfg.AWS_BUCKET_NAME, user.photo_object_name, 600
             )
             user_data[i].photo_url = presigned_url
 
@@ -94,11 +94,11 @@ class UserService(CrudService):
         users: List[UserSchema] = await self.get_itens(
             {"id": photo_schema.user_id}, session
         )
-        if users[0].photo_object:
-            self.aws_client.delete_file(cfg.AWS_BUCKET_NAME, users[0].photo_object)
+        if users[0].photo_object_name:
+            self.aws_client.delete_file(cfg.AWS_BUCKET_NAME, users[0].photo_object_name)
         photo_schema = await self._insert_to_bucket(photo_schema)
         user_update = MakeOptionalPydantic.make_partial_model(UserUpdate)
-        user_update = user_update(photo_object=photo_schema.file_path)
+        user_update = user_update(photo_object_name=photo_schema.file_path)
         users = self.update_item(
             photo_schema.user_id,
             user_update,

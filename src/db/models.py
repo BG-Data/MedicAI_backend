@@ -1,7 +1,9 @@
 from datetime import datetime
+from typing import List
 
 import pytz
 from sqlalchemy import (
+    JSON,
     Boolean,
     Column,
     Date,
@@ -14,7 +16,7 @@ from sqlalchemy import (
     String,
     func,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, foreign, relationship
 
 from db.connectors import Base
 
@@ -48,14 +50,14 @@ class DefaultModel(Base):
         return func.to_char(self.updated_at, "HH24:MI:SS")
 
 
-class UserModel(DefaultModel):
+class Users(DefaultModel):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), index=True, nullable=False)
     password = Column(String(255), nullable=False)
     email = Column(String(100), nullable=False, index=True, unique=True)
-    photo_object = Column(
+    photo_object_name = Column(
         String(250),
         nullable=True,
         comment="Representa o nome do objeto no bucket s3 e seu caminho",
@@ -74,6 +76,11 @@ class UserModel(DefaultModel):
         Boolean, nullable=False, default=False
     )  # Usuário está desativado? (padrão é False) rmeoção lógica e não física
 
+    chat_history: Mapped[List["ChatsHistory"]] = relationship(
+        back_populates="user_history"
+    )
+    logs: Mapped[List["LogRequest"]] = relationship(back_populates="user_logs")
+
 
 class Bots(DefaultModel):
     __tablename__ = "bots"
@@ -82,7 +89,12 @@ class Bots(DefaultModel):
     name = Column(String(50), nullable=False)
     function = Column(String(100), nullable=True)
 
+    chat_history: Mapped[List["ChatsHistory"]] = relationship(
+        back_populates="bot_history", overlaps="chat_history"
+    )
 
+
+# @TODO -> Solve the issue with Composite Foreign Key  https://docs.sqlalchemy.org/en/20/orm/join_conditions.html#overlapping-foreign-keys
 class ChatsHistory(DefaultModel):
     __tablename__ = "chats_history"
 
@@ -91,20 +103,69 @@ class ChatsHistory(DefaultModel):
     sender_id = Column(Integer, nullable=False)
     sender_type = Column(String(10), nullable=False)
 
-    bot = relationship("Bots", foreign_keys=[sender_id])
-    user = relationship("Users", foreign_keys=[sender_id])
+    bot_history: Mapped[Bots] = relationship(
+        foreign_keys=[sender_id], back_populates="chat_history", overlaps="chat_history"
+    )
+    user_history: Mapped[Users] = relationship(
+        foreign_keys=[sender_id],
+        back_populates="chat_history",
+        overlaps="bot_history",
+    )
+    chat: Mapped["Chats"] = relationship(back_populates="chat_history")
+
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["sender_id"], ["bots.id"], onupdate="CASCADE", name="fk_bot_sender"
+        ),
+        ForeignKeyConstraint(
+            ["sender_id"], ["users.id"], onupdate="CASCADE", name="fk_user_sender"
+        ),
+    )
+
+
+class TagGroups(DefaultModel):
+    __tablename__ = "tag_groups"
+
+    id = Column(Integer, primary_key=True, index=True)
+    chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False)
+    tag_id = Column(Integer, ForeignKey("tags.id"), nullable=False)
 
 
 class Chats(DefaultModel):
+    __tablename__ = "chats"
+
     id = Column(Integer, primary_key=True, index=True)
     chat_history_id = Column(Integer, ForeignKey("chats_history.id"), nullable=False)
-    tag_group_id = Column(Integer, ForeignKey("tag_group.id"), nullable=False)
     file_object_name = Column(String(250), nullable=True)
+    favority = Column(Boolean, nullable=True, default=False)
 
-
-class TagsGroups(DefaultModel):
-    pass
+    chat_history: Mapped[List[ChatsHistory]] = relationship(back_populates="chat")
+    tags: Mapped[List["Tags"]] = relationship(
+        secondary="tag_groups", back_populates="chats"
+    )
 
 
 class Tags(DefaultModel):
-    pass
+    __tablename__ = "tags"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), nullable=False)
+
+    chats: Mapped[List[Chats]] = relationship(
+        secondary="tag_groups", back_populates="tags"
+    )
+
+
+class LogRequest(DefaultModel):
+    __tablename__ = "log_request"
+    id = Column(Integer, primary_key=True, index=True)
+    endpoint = Column(String(200), nullable=False)
+    method = Column(String(200), nullable=False)
+    function_name = Column(String(200), nullable=False)
+    status_code = Column(Integer, nullable=False)
+    request = Column(JSON, nullable=True)
+    comment = Column(String(200), nullable=True)
+    latency = Column(Numeric(precision=14, scale=3), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    response = Column(JSON, nullable=True)
+
+    user_logs: Mapped[List[Users]] = relationship(back_populates="logs")
