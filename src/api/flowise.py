@@ -14,7 +14,7 @@ from common.generic import CrudApi, Depends
 from db import MakeOptionalPydantic
 from db.connectors import Session, get_session
 from db.models import UserModel
-from db.schemas import UserInsert, UserSchema, UserUpdate
+from schemas import UserInsert, UserSchema, UserUpdate
 
 logger.add(
     sys.stderr,

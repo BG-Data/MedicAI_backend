@@ -8,3 +8,8 @@ class UserType(str, Enum):
 
 class UserTypePrivileged(str, Enum):
     admin = "admin"
+
+
+class SenterType(str, Enum):
+    bot = "bot"
+    usuario = "usuario"

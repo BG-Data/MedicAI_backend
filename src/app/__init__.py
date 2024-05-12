@@ -12,7 +12,7 @@ from common.aws import AwsClient
 from common.generic import CrudService
 from db import MakeOptionalPydantic
 from db.connectors import Base, Session, get_session
-from db.schemas import PhotoSchema, UserInsert, UserSchema, UserUpdate
+from schemas import PhotoSchema, UserInsert, UserSchema, UserUpdate
 from settings import cfg
 
 logger.add(

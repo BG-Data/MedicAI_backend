@@ -8,7 +8,7 @@ from common import PasswordService
 from common.generic import CrudService
 from db.connectors import Session, SessionLocal
 from db.models import UserModel
-from db.schemas import UserInsertAdmin
+from schemas import UserInsertAdmin
 from settings import cfg
 
 logger.add(

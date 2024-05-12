@@ -118,3 +118,15 @@ class PhotoSchema(PydanticModel):
         if not file_path:
             file_path = f"{cfg.AWS_PHOTO_BUCKET_FOLDER}/user_id:{values.data.get('user_id')}/{values.data.get('filename')}"
             return file_path
+
+
+class ChatsHistory(PydanticModel):
+    pass
+
+
+class Chats(PydanticModel):
+    pass
+
+
+class Tags(PydanticModel):
+    pass

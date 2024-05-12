@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    ForeignKeyConstraint,
     Integer,
     Numeric,
     String,
@@ -72,3 +73,38 @@ class UserModel(DefaultModel):
     deleted = Column(
         Boolean, nullable=False, default=False
     )  # Usuário está desativado? (padrão é False) rmeoção lógica e não física
+
+
+class Bots(DefaultModel):
+    __tablename__ = "bots"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), nullable=False)
+    function = Column(String(100), nullable=True)
+
+
+class ChatsHistory(DefaultModel):
+    __tablename__ = "chats_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    message = Column(String(1000), nullable=False)
+    sender_id = Column(Integer, nullable=False)
+    sender_type = Column(String(10), nullable=False)
+
+    bot = relationship("Bots", foreign_keys=[sender_id])
+    user = relationship("Users", foreign_keys=[sender_id])
+
+
+class Chats(DefaultModel):
+    id = Column(Integer, primary_key=True, index=True)
+    chat_history_id = Column(Integer, ForeignKey("chats_history.id"), nullable=False)
+    tag_group_id = Column(Integer, ForeignKey("tag_group.id"), nullable=False)
+    file_object_name = Column(String(250), nullable=True)
+
+
+class TagsGroups(DefaultModel):
+    pass
+
+
+class Tags(DefaultModel):
+    pass
