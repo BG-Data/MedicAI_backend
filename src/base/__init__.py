@@ -8,7 +8,7 @@ from api import UserApi
 from common.auth import AuthApi
 from common.base_users import BaseUsers
 from db.connectors import Base, engine
-from schemas import Health
+from schemas.users import Health
 
 logger.add(
     sys.stderr,
@@ -60,7 +60,7 @@ def init_app():
     app = init_auth(app)
     app = init_routes(app, api_routes)
     Base.metadata.create_all(bind=engine)
-    base_users = BaseUsers().create_base_users()
+    # base_users = BaseUsers().create_base_users()
     # logger.info(base_users)
     return app, Base
 

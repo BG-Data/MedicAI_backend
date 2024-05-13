@@ -90,11 +90,15 @@ class Bots(DefaultModel):
     function = Column(String(100), nullable=True)
 
     chat_history: Mapped[List["ChatsHistory"]] = relationship(
-        back_populates="bot_history", overlaps="chat_history"
+        back_populates="bot_history"
     )
 
 
 # @TODO -> Solve the issue with Composite Foreign Key  https://docs.sqlalchemy.org/en/20/orm/join_conditions.html#overlapping-foreign-keys
+
+# @TODO -> Could be solved using UUID to avoid Collision or by simplying removing the relationship below.
+
+
 class ChatsHistory(DefaultModel):
     __tablename__ = "chats_history"
 
@@ -104,7 +108,7 @@ class ChatsHistory(DefaultModel):
     sender_type = Column(String(10), nullable=False)
 
     bot_history: Mapped[Bots] = relationship(
-        foreign_keys=[sender_id], back_populates="chat_history", overlaps="chat_history"
+        foreign_keys=[sender_id], back_populates="chat_history", overlaps="user_history"
     )
     user_history: Mapped[Users] = relationship(
         foreign_keys=[sender_id],
