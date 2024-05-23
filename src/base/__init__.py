@@ -8,7 +8,7 @@ from api import UserApi
 from common.auth import AuthApi
 from common.base_users import BaseUsers
 from db.connectors import Base, engine
-from schemas.users import Health
+from schemas import Health
 
 logger.add(
     sys.stderr,

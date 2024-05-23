@@ -11,7 +11,8 @@ from typing_extensions import Annotated
 
 from common.class_exceptions import DocumentInvalid, PhotoInvalid
 from schemas import LogRequestSchema, PydanticModel
-from schemas.chats import ChatsHistorySchema, ChatsSchema
+
+# from schemas.chats import ChatsHistorySchema
 from settings import cfg
 from utils import StringUtils
 
@@ -72,7 +73,7 @@ class UserSchema(UserBase):
 
     user_type: UserType | UserTypePrivileged
 
-    chat_history: Optional[List[ChatsHistorySchema]] = None
+    # chat_history: Optional[List[ChatsHistorySchema]] = None
     logs: Optional[List[LogRequestSchema]] = None
 
 
@@ -125,10 +126,3 @@ class PhotoSchema(PydanticModel):
         if not file_path:
             file_path = f"{cfg.AWS_PHOTO_BUCKET_FOLDER}/user_id:{values.data.get('user_id')}/{values.data.get('filename')}"
             return file_path
-
-
-class BotsSchema(PydanticModel):
-    id: int
-    name: str
-    function: str
-    chat_history: Optional[List[ChatsHistorySchema]] = None

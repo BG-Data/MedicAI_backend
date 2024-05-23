@@ -36,13 +36,13 @@ class Health(PydanticModel):
 
 
 class LogRequestSchema(PydanticModel):
-    id = Column(Integer, primary_key=True, index=True)
-    endpoint = Column(String(200), nullable=False)
-    method = Column(String(200), nullable=False)
-    function_name = Column(String(200), nullable=False)
-    status_code = Column(Integer, nullable=False)
-    request = Column(JSON, nullable=True)
-    comment = Column(String(200), nullable=True)
-    latency = Column(Numeric(precision=14, scale=3), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    response = Column(JSON, nullable=True)
+    id: int
+    endpoint: str
+    method: str
+    function_name: str
+    status_code: int
+    request: str  # criar json load field validator
+    comment: str
+    latency: str
+    user_id: int
+    response: str  # criar json load field validator

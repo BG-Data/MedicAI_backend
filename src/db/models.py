@@ -103,6 +103,7 @@ class ChatsHistory(DefaultModel):
     __tablename__ = "chats_history"
 
     id = Column(Integer, primary_key=True, index=True)
+    chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False)
     message = Column(String(1000), nullable=False)
     sender_id = Column(Integer, nullable=False)
     sender_type = Column(String(10), nullable=False)
@@ -139,7 +140,6 @@ class Chats(DefaultModel):
     __tablename__ = "chats"
 
     id = Column(Integer, primary_key=True, index=True)
-    chat_history_id = Column(Integer, ForeignKey("chats_history.id"), nullable=False)
     file_object_name = Column(String(250), nullable=True)
     favority = Column(Boolean, nullable=True, default=False)
 
