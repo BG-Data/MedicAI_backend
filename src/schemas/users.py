@@ -6,13 +6,14 @@ from uuid import uuid4
 
 import pytz
 from fastapi import UploadFile
-from pydantic import ConfigDict, Field, field_validator
+from pydantic import ConfigDict, EmailStr, Field, field_validator
 from typing_extensions import Annotated
 
-from common.class_exceptions import PhotoInvalid
+from common.class_exceptions import DocumentInvalid, PhotoInvalid
 from schemas import LogRequestSchema, PydanticModel
-from schemas.chats import ChatSchema, ChatsHistorySchema
+from schemas.chats import ChatsHistorySchema, ChatsSchema
 from settings import cfg
+from utils import StringUtils
 
 # Usuários
 from utils.enums import UserType, UserTypePrivileged
@@ -21,42 +22,62 @@ tz = pytz.timezone("America/Sao_Paulo")
 
 
 class UserBase(PydanticModel):
-    email: str
-    photo_object_name: Optional[str] = None
+    "User Base Schema"
+    email: EmailStr = Field(
+        examples=["maria@medicai.com"],
+        max_length=100,
+    )
+    name: str = Field(examples=["Maria Nogueira", "Leon Balloni"], max_length=255)
+    password: str = Field(examples=[str(uuid4()), str(uuid4())], max_length=255)
+    birthdate: date = Field(examples=[date(1995, 5, 25), date(1993, 3, 25)])
+    document: str = Field(
+        examples=["44.654.108/0001-73", "123.456.789-09"], max_length=18, min_length=11
+    )
+    document_type: Optional[str] = Field(examples=["CNPJ", "CPF", None], max_length=10)
+    medical_document: Optional[str] = Field(examples=["192496", None], max_length=20)
+    medical_document_type: Optional[str] = Field(examples=["CRM", None], max_length=18)
+    deleted: bool = Field(examples=[True, False], default=False)
+    privacy_terms: bool = Field(examples=[True, False])
+    data_protection_terms: bool = Field(examples=[True, False])
+    photo_object_name: Optional[str] = Field(
+        default=None,
+        examples=[
+            "https://medic-ai.s3.us-west-1.amazonaws.com/photos/user_id%3A1/loen-removebg-preview.jpg"
+        ],
+        max_length=250,
+    )
+
+    @field_validator("document", mode="before")
+    @classmethod
+    def check_document(cls, document: str):
+        if not document:
+            raise DocumentInvalid(
+                f"Documento inválido. O que foi encaminhado: {document}"
+            )
+        return StringUtils.remove_special_characters(document)
+
+    @field_validator("document_type", mode="before")
+    @classmethod
+    def check_document_type(cls, document_type, values):
+        if not document_type:
+            return StringUtils.check_document_type_by_length(
+                values.data.get("document")
+            )
 
 
 class UserSchema(UserBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    name: str
-    password: str
-    birthdate: date
-    document: str
-    document_type: str
-    medical_document: Optional[str] = None
-    medical_document_type: Optional[str] = None
+
     user_type: UserType | UserTypePrivileged
-    deleted: bool
-    privacy_terms: bool
-    data_protection_terms: bool
 
     chat_history: Optional[List[ChatsHistorySchema]] = None
     logs: Optional[List[LogRequestSchema]] = None
 
 
 class UserInsert(UserBase):
-    name: str
-    password: str
-    birthdate: date
-    document: str
-    document_type: str
-    medical_document: Optional[str] = None
-    medical_document_type: Optional[str] = None
     user_type: UserType
-    deleted: bool = False
-    privacy_terms: bool
-    data_protection_terms: bool
 
 
 class UserInsertAdmin(UserInsert):

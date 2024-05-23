@@ -26,6 +26,14 @@ class PhotoInvalid(OriginalException):
     pass
 
 
+class DocumentInvalid(OriginalException):
+    pass
+
+
+class UnknownDocumentType(OriginalException):
+    pass
+
+
 class AwsInsertionFailed(OriginalException):
     pass
 

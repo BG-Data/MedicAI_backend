@@ -1,9 +1,13 @@
-from sqlalchemy import inspect, asc, desc
-from db.connectors import Base
-from loguru import logger
 import sys
 from datetime import date, datetime
-from typing import Union, Tuple
+from re import sub
+from typing import List, Tuple, Union
+
+from loguru import logger
+from sqlalchemy import asc, desc, inspect
+
+from common.class_exceptions import UnknownDocumentType
+from db.connectors import Base
 
 logger.add(
     sys.stderr,
@@ -110,3 +114,31 @@ class ModelUtils:
                 raise AttributeError(
                     f"The inserted key {key} is not present at the Model {self.model.__tablename__}"
                 )
+
+
+class StringUtils:
+
+    @staticmethod
+    def remove_special_characters(string: str) -> str:
+        "Remove caracteres especiais da string encaminhada"
+        return sub(r"\D", "", string)
+
+    @staticmethod
+    def check_document_type_by_length(string: str) -> str:
+        """Confere os tipos de documentos registrados
+
+        string: the document number
+
+        reverse: if doc number is given at string: true, if doc_type: false
+
+        - Returns:
+            doc_type | doc_number: str
+        """
+
+        document_types: dict = {"CPF": 11, "CNPJ": 14}
+        doc_length = len(string)
+        docs_length = {v: k for k, v in document_types.items()}
+        doc_type = docs_length.get(doc_length)
+        if not doc_type:
+            raise UnknownDocumentType(f"Nro de doc inválido. Nro enviado: {string}")
+        return doc_type

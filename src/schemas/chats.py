@@ -19,13 +19,25 @@ from utils.enums import UserType, UserTypePrivileged
 tz = pytz.timezone("America/Sao_Paulo")
 
 
-class ChatsHistorySchema(PydanticModel):
+class ChatsHistoryBase(PydanticModel):
     pass
 
 
-class Chats(PydanticModel):
+class ChatsHistorySchema(ChatsHistoryBase):
     pass
 
 
-class Tags(PydanticModel):
+class ChatsBase(PydanticModel):
+    pass
+
+
+class ChatsSchema(ChatsBase):
+    pass
+
+
+class TagsBase(PydanticModel):
+    pass
+
+
+class TagsSchema(TagsBase):
     pass
