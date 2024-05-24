@@ -7,7 +7,7 @@ from fastapi import HTTPException, Request, UploadFile, status
 from fastapi.responses import Response
 from loguru import logger
 
-from app import UserService
+from app.users import UserService
 from common import PasswordService
 from common.auth import AuthService
 from common.generic import CrudApi, Depends

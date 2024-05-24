@@ -10,6 +10,6 @@ class UserTypePrivileged(str, Enum):
     admin = "admin"
 
 
-class SenterType(str, Enum):
+class SenderType(str, Enum):
     bot = "bot"
     usuario = "usuario"

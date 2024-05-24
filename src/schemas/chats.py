@@ -13,7 +13,7 @@ from common.class_exceptions import PhotoInvalid
 from schemas import PydanticModel
 
 # from schemas.users import UserSchema
-from utils.enums import SenterType
+from utils.enums import SenderType
 
 # Usuários
 
@@ -24,7 +24,7 @@ class ChatsHistoryBase(PydanticModel):
     chat_id: int
     message: str = Field(max_length=1000)
     sender_id: int
-    sender_type: SenterType = Field(max_length=10)
+    sender_type: SenderType
 
 
 class ChatsHistorySchema(ChatsHistoryBase):
@@ -32,9 +32,9 @@ class ChatsHistorySchema(ChatsHistoryBase):
     created_at: datetime
     updated_at: datetime
 
-    bot_history: Optional[List["BotsSchema"]] = None
+    # bot_history: Optional[List["BotsSchema"]] = None
     # user_history: Optional[List[UserSchema]] = None
-    chat: Optional["ChatsSchema"] = None
+    # chat: Optional["ChatsSchema"] = None
 
 
 class ChatsHistoryInsert(ChatsHistoryBase):
@@ -46,26 +46,30 @@ class ChatsHistoryUpdate(ChatsHistoryInsert):
 
 
 class ChatsBase(PydanticModel):
-    file_object_name: Optional[str] = None
-    favority: bool = False
+    file_object_name: Optional[str] = Field(default=None, examples=[None])
+    favority: bool = Field(default=False, examples=[False])
+    user_id: int = Field(description="Quem mandou a mensagem")
 
 
 class ChatsSchema(ChatsBase):
     id: int
     created_at: datetime
     updated_at: datetime
-
     chat_history: Optional[List[ChatsHistorySchema]] = None
-    tags: Optional[List["TagsSchema"]] = None
+    # tags: Optional[List["TagsSchema"]] = None
 
 
 class ChatsInsert(ChatsBase):
+    pass
+
+
+class ChatMessageInsert(ChatsBase):
     chat_id: Optional[int] = Field(
+        examples=[None],
         default=None,
         description=" Se houver um chat ja criado, vincular ao histórico dele, se não criar um novo chat.",
     )
     message: str
-    sender_id: int = Field(description="Quem mandou a mensagem")
 
 
 class ChatsUpdate(ChatsBase):
@@ -73,10 +77,18 @@ class ChatsUpdate(ChatsBase):
 
 
 class TagsBase(PydanticModel):
-    pass
+    name: str
 
 
 class TagsSchema(TagsBase):
+    id: int
+
+
+class TagsInsert(TagsBase):
+    pass
+
+
+class TagsUpdate(TagsInsert):
     pass
 
 
@@ -84,4 +96,4 @@ class BotsSchema(PydanticModel):
     id: int
     name: str
     function: str
-    chat_history: Optional[List[ChatsHistorySchema]] = None
+    # chat_history: Optional[List[ChatsHistorySchema]] = None

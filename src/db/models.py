@@ -80,6 +80,7 @@ class Users(DefaultModel):
         back_populates="user_history"
     )
     logs: Mapped[List["LogRequest"]] = relationship(back_populates="user_logs")
+    chats: Mapped[List["Chats"]] = relationship(back_populates="user_chat")
 
 
 class Bots(DefaultModel):
@@ -89,9 +90,9 @@ class Bots(DefaultModel):
     name = Column(String(50), nullable=False)
     function = Column(String(100), nullable=True)
 
-    chat_history: Mapped[List["ChatsHistory"]] = relationship(
-        back_populates="bot_history"
-    )
+    # chat_history: Mapped[List["ChatsHistory"]] = relationship(
+    #     back_populates="bot_history"
+    # )
 
 
 # @TODO -> Solve the issue with Composite Foreign Key  https://docs.sqlalchemy.org/en/20/orm/join_conditions.html#overlapping-foreign-keys
@@ -105,27 +106,32 @@ class ChatsHistory(DefaultModel):
     id = Column(Integer, primary_key=True, index=True)
     chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False)
     message = Column(String(1000), nullable=False)
-    sender_id = Column(Integer, nullable=False)
+    sender_id = Column(
+        Integer,
+        ForeignKey(
+            "users.id",
+        ),
+        nullable=False,
+    )
     sender_type = Column(String(10), nullable=False)
 
-    bot_history: Mapped[Bots] = relationship(
-        foreign_keys=[sender_id], back_populates="chat_history", overlaps="user_history"
-    )
+    # bot_history: Mapped[Bots] = relationship(
+    #     foreign_keys=[sender_id], back_populates="chat_history", overlaps="user_history"
+    # )
     user_history: Mapped[Users] = relationship(
         foreign_keys=[sender_id],
         back_populates="chat_history",
         overlaps="bot_history",
     )
     chat: Mapped["Chats"] = relationship(back_populates="chat_history")
-
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ["sender_id"], ["bots.id"], onupdate="CASCADE", name="fk_bot_sender"
-        ),
-        ForeignKeyConstraint(
-            ["sender_id"], ["users.id"], onupdate="CASCADE", name="fk_user_sender"
-        ),
-    )
+    # __table_args__ = (
+    #     ForeignKeyConstraint(
+    #         ["sender_id"], ["bots.id"], onupdate="CASCADE", name="fk_bot_sender"
+    #     ),
+    #     ForeignKeyConstraint(
+    #         ["sender_id"], ["users.id"], onupdate="CASCADE", name="fk_user_sender"
+    #     ),
+    # )
 
 
 class TagGroups(DefaultModel):
@@ -142,11 +148,12 @@ class Chats(DefaultModel):
     id = Column(Integer, primary_key=True, index=True)
     file_object_name = Column(String(250), nullable=True)
     favority = Column(Boolean, nullable=True, default=False)
-
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     chat_history: Mapped[List[ChatsHistory]] = relationship(back_populates="chat")
     tags: Mapped[List["Tags"]] = relationship(
         secondary="tag_groups", back_populates="chats"
     )
+    user_chat: Mapped["Users"] = relationship(back_populates="chats")
 
 
 class Tags(DefaultModel):

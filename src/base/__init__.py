@@ -4,7 +4,8 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
-from api import UserApi
+from api.chats import ChatsApi, ChatsHistoryApi
+from api.users import UserApi
 from common.auth import AuthApi
 from common.base_users import BaseUsers
 from db.connectors import Base, engine
@@ -33,28 +34,13 @@ def init_middlewares(app: FastAPI):
 def init_app():
     app = FastAPI()
     api_routes = {
-        "users": {"router": UserApi(), "tags": ["Usuarios"], "prefix": "/users"}
-        # "product": {
-        #     "router": ProductApi(),
-        #     "tags": ["Produtos"],
-        #     "prefix": "/products",
-        # },
-        # "product_file": {
-        #     "router": ProductFileApi(),
-        #     "tags": ["Produtos e Arquivos"],
-        #     "prefix": "/products/files",
-        # },
-        # "sale": {"router": SaleApi(), "tags": ["Vendas"], "prefix": "/sales"},
-        # "address": {
-        #     "router": AddressApi(),
-        #     "tags": ["Endereços"],
-        #     "prefix": "/addresses",
-        # },
-        # "payment": {
-        #     "router": PaymentApi(),
-        #     "tags": ["Métodos de Pagamento"],
-        #     "prefix": "/payment_methods",
-        # },
+        "users": {"router": UserApi(), "tags": ["Usuarios"], "prefix": "/users"},
+        "chats": {"router": ChatsApi(), "tags": ["Chats"], "prefix": "/chats"},
+        "chats_history": {
+            "router": ChatsHistoryApi(),
+            "tags": ["Chats"],
+            "prefix": "/chats/history",
+        },
     }
     app = init_middlewares(app)
     app = init_auth(app)

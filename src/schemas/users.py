@@ -34,9 +34,18 @@ class UserBase(PydanticModel):
     document: str = Field(
         examples=["44.654.108/0001-73", "123.456.789-09"], max_length=18, min_length=11
     )
-    document_type: Optional[str] = Field(examples=["CNPJ", "CPF", None], max_length=10)
-    medical_document: Optional[str] = Field(examples=["192496", None], max_length=20)
-    medical_document_type: Optional[str] = Field(examples=["CRM", None], max_length=18)
+    document_type: Optional[str] = Field(
+        examples=["CNPJ", "CPF", None],
+        max_length=10,
+        default=None,
+        validate_default=True,
+    )
+    medical_document: Optional[str] = Field(
+        examples=["192496", None], max_length=20, default=None
+    )
+    medical_document_type: Optional[str] = Field(
+        examples=["CRM", None], max_length=18, default=None
+    )
     deleted: bool = Field(examples=[True, False], default=False)
     privacy_terms: bool = Field(examples=[True, False])
     data_protection_terms: bool = Field(examples=[True, False])
@@ -47,6 +56,21 @@ class UserBase(PydanticModel):
         ],
         max_length=250,
     )
+
+
+class UserSchema(UserBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    user_type: UserType | UserTypePrivileged
+
+    # chat_history: Optional[List[ChatsHistorySchema]] = None
+    # logs: Optional[List[LogRequestSchema]] = None
+
+
+class UserInsert(UserBase):
+    user_type: UserType
 
     @field_validator("document", mode="before")
     @classmethod
@@ -60,25 +84,12 @@ class UserBase(PydanticModel):
     @field_validator("document_type", mode="before")
     @classmethod
     def check_document_type(cls, document_type, values):
-        if not document_type:
-            return StringUtils.check_document_type_by_length(
-                values.data.get("document")
-            )
-
-
-class UserSchema(UserBase):
-    id: int
-    created_at: datetime
-    updated_at: datetime
-
-    user_type: UserType | UserTypePrivileged
-
-    # chat_history: Optional[List[ChatsHistorySchema]] = None
-    logs: Optional[List[LogRequestSchema]] = None
-
-
-class UserInsert(UserBase):
-    user_type: UserType
+        doc_type = StringUtils.check_document_type_by_length(
+            values.data.get("document")
+        )
+        if document_type == doc_type:
+            return document_type
+        return doc_type
 
 
 class UserInsertAdmin(UserInsert):
@@ -86,9 +97,11 @@ class UserInsertAdmin(UserInsert):
 
 
 class UserUpdate(UserInsert):
-    model_config = ConfigDict(extra="allow")
-
     old_password: str
+
+
+class UserUpdatePhoto(UserBase):
+    pass
 
 
 class PhotoSchema(PydanticModel):

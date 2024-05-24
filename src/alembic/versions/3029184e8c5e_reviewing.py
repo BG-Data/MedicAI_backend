@@ -1,8 +1,8 @@
-"""changing foreign key chat_id from chats to chats_history
+"""reviewing
 
-Revision ID: a726e3c440cd
+Revision ID: 3029184e8c5e
 Revises: 
-Create Date: 2024-05-22 23:57:55.090662
+Create Date: 2024-05-23 23:21:35.446534
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import mysql
 
 # revision identifiers, used by Alembic.
-revision: str = 'a726e3c440cd'
+revision: str = '3029184e8c5e'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
