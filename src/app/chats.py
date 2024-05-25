@@ -7,6 +7,7 @@ from loguru import logger
 from pydantic import BaseModel
 from sqlalchemy import delete, or_
 
+from api.flowise import FlowiseApi
 from common import FileProcessing, PasswordService, get_current_method_name
 from common.aws import AwsClient
 from common.generic import CrudService
@@ -34,6 +35,8 @@ logger.add(
 
 
 class ChatsService(CrudService):
+    flowise = FlowiseApi()
+
     def __init__(self, model: Base, schema: BaseModel):
         super().__init__(model, schema)
         self.model = model
@@ -60,12 +63,29 @@ class ChatsService(CrudService):
             sender_type=SenderType.usuario,
         )
         self._insert_new_message(insert_new_message, session)
+        try:
+            self._insert_bot_message(insert_schema, session)
+        except Exception as exp:
+            None
         if not new_chat:
             new_chat = await self.get_itens(
                 {"id": insert_schema.chat_id, "limit": 1000}, session
             )
             new_chat = new_chat[0]
         return new_chat
+
+    def _get_bot_answer(self, question: str) -> str:
+        return self.flowise.ask_bot(question)
+
+    def _insert_bot_message(self, insert_schema: ChatMessageInsert, session) -> None:
+        bot_msg = self._get_bot_answer(insert_schema.message)
+        insert_new_message = ChatsHistoryInsert(
+            chat_id=insert_schema.chat_id,
+            message=bot_msg,
+            sender_id=insert_schema.user_id,
+            sender_type=SenderType.bot,
+        )
+        self._insert_new_message(insert_new_message, session)
 
     def _insert_new_chat(self, insert_schema: ChatMessageInsert, session: Session):
         logger.info("Creating New Chat")

@@ -1,20 +1,7 @@
 import sys
-from json import dumps
-from typing import Any, Dict, List, Union
-from uuid import uuid4
 
-from fastapi import HTTPException, Request, UploadFile, status
-from fastapi.responses import Response
+import requests
 from loguru import logger
-
-from app.users import UserService
-from common import PasswordService
-from common.auth import AuthService
-from common.generic import CrudApi, Depends
-from db import MakeOptionalPydantic
-from db.connectors import Session, get_session
-from db.models import Users
-from schemas.users import UserInsert, UserSchema, UserUpdate
 
 logger.add(
     sys.stderr,
@@ -25,19 +12,25 @@ logger.add(
 )
 
 
-class FlowiseApi(CrudApi):
-    def __init__(
-        self,
-        model: FlowiseModel = FlowiseModel,
-        schema: FlowiseSchema = FlowiseSchema,
-        *args,
-        **kwargs,
-    ):
-        super().__init__(model, schema, *args, **kwargs)
-        self.add_api_route(
-            "/",
-            self.post,
-            methods=["POST"],
-            response_model=Union[List[schema], schema, Any],
-            dependencies=[Depends(AuthService.get_auth_user_context)],
+# Puramente para testes. Funciona! TODO -> refatorar para incorporar infos sensíves, .env e ajustar essa API para ser mais elegante.
+class FlowiseApi:
+    API_URL = (
+        "http://flowise:3000/api/v1/prediction/0b64be2d-6c5f-4eed-a5b3-7d3ff4c77c30"
+    )
+    headers = {"Authorization": "Bearer qvQgnW1Cw7JIcF+iKGb5hwNsJhWqCVQ+kR4slFoN5oY="}
+
+    def __init__(self):
+        pass
+
+    def query_model(self, question: str) -> dict:
+        response = requests.post(
+            self.API_URL, headers=self.headers, json={"question": question}, timeout=120
         )
+        return response.json()
+
+    def retrieve_response(self, response: dict) -> str:
+        return response.get("text")
+
+    def ask_bot(self, question: str) -> str:
+        answer = self.query_model(question)
+        return self.retrieve_response(answer)
