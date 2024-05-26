@@ -35,7 +35,7 @@ logger.add(
 
 
 class ChatsService(CrudService):
-    flowise = FlowiseApi()
+    flowise = FlowiseApi(cfg)
 
     def __init__(self, model: Base, schema: BaseModel):
         super().__init__(model, schema)
@@ -66,12 +66,11 @@ class ChatsService(CrudService):
         try:
             self._insert_bot_message(insert_schema, session)
         except Exception as exp:
-            None
-        if not new_chat:
-            new_chat = await self.get_itens(
-                {"id": insert_schema.chat_id, "limit": 1000}, session
-            )
-            new_chat = new_chat[0]
+            logger.error(f"Bot ERROR >>> {exp}")
+            raise exp
+        new_chat = await self.get_itens(
+            {"id": insert_schema.chat_id, "limit": 1000}, session
+        )
         return new_chat
 
     def _get_bot_answer(self, question: str) -> str:

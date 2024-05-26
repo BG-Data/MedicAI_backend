@@ -14,18 +14,19 @@ logger.add(
 
 # Puramente para testes. Funciona! TODO -> refatorar para incorporar infos sensíves, .env e ajustar essa API para ser mais elegante.
 class FlowiseApi:
-    API_URL = (
-        "http://flowise:3000/api/v1/prediction/0b64be2d-6c5f-4eed-a5b3-7d3ff4c77c30"
-    )
-    headers = {"Authorization": "Bearer qvQgnW1Cw7JIcF+iKGb5hwNsJhWqCVQ+kR4slFoN5oY="}
+    # API_URL = cfg.FLOWISE_URL
+    # headers = {"Authorization": f"Bearer {cfg.FLOWISE_HEADER}"}
 
-    def __init__(self):
-        pass
+    def __init__(self, cfg):
+        self.API_URL = cfg.FLOWISE_URL
+        self.headers = {"Authorization": f"Bearer {cfg.FLOWISE_TOKEN}"}
 
     def query_model(self, question: str) -> dict:
+        logger.info(f"Question made to ai: {question}")
         response = requests.post(
             self.API_URL, headers=self.headers, json={"question": question}, timeout=120
         )
+        logger.info(f"BOT response>>> {response}")
         return response.json()
 
     def retrieve_response(self, response: dict) -> str:

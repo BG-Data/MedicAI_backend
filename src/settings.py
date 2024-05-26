@@ -22,6 +22,8 @@ logger.add(
 class Config:
     ENVIRONMENT = config("ENVIRONMENT", default="test", cast=str)
     INFISICAL_TOKEN = config("INFISICAL_TOKEN")
+    FLOWISE_URL = config("FLOWISE_URL", cast=str)
+    FLOWISE_TOKEN = config("FLOWISE_TOKEN", cast=str)
 
     def __init__(self):
         if self.INFISICAL_TOKEN and self.ENVIRONMENT != "test":
