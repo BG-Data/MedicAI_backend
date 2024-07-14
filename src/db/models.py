@@ -105,7 +105,7 @@ class ChatsHistory(DefaultModel):
 
     id = Column(Integer, primary_key=True, index=True)
     chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False)
-    message = Column(String(1000), nullable=False)
+    message = Column(String(10000), nullable=False)
     sender_id = Column(
         Integer,
         ForeignKey(

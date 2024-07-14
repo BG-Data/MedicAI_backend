@@ -1,20 +1,7 @@
 import sys
-from json import dumps
-from typing import Any, Dict, List, Union
-from uuid import uuid4
 
-from fastapi import HTTPException, Request, UploadFile, status
-from fastapi.responses import Response
+import requests
 from loguru import logger
-
-from app.users import UserService
-from common import PasswordService
-from common.auth import AuthService
-from common.generic import CrudApi, Depends
-from db import MakeOptionalPydantic
-from db.connectors import Session, get_session
-from db.models import Users
-from schemas.users import UserInsert, UserSchema, UserUpdate
 
 logger.add(
     sys.stderr,
@@ -25,19 +12,26 @@ logger.add(
 )
 
 
-class FlowiseApi(CrudApi):
-    def __init__(
-        self,
-        model: FlowiseModel = FlowiseModel,
-        schema: FlowiseSchema = FlowiseSchema,
-        *args,
-        **kwargs,
-    ):
-        super().__init__(model, schema, *args, **kwargs)
-        self.add_api_route(
-            "/",
-            self.post,
-            methods=["POST"],
-            response_model=Union[List[schema], schema, Any],
-            dependencies=[Depends(AuthService.get_auth_user_context)],
+# Puramente para testes. Funciona! TODO -> refatorar para incorporar infos sensíves, .env e ajustar essa API para ser mais elegante.
+class FlowiseApi:
+    # API_URL = cfg.FLOWISE_URL
+    # headers = {"Authorization": f"Bearer {cfg.FLOWISE_HEADER}"}
+
+    def __init__(self, cfg):
+        self.API_URL = cfg.FLOWISE_URL
+        self.headers = {"Authorization": f"Bearer {cfg.FLOWISE_TOKEN}"}
+
+    def query_model(self, question: str) -> dict:
+        logger.info(f"Question made to ai: {question}")
+        response = requests.post(
+            self.API_URL, headers=self.headers, json={"question": question}, timeout=120
         )
+        logger.info(f"BOT response>>> {response}")
+        return response.json()
+
+    def retrieve_response(self, response: dict) -> str:
+        return response.get("text")
+
+    def ask_bot(self, question: str) -> str:
+        answer = self.query_model(question)
+        return self.retrieve_response(answer)
